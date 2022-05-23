@@ -1,0 +1,79 @@
+table_name: s3_orders
+samples:
+  table_limit: 50
+  failed_limit: 50
+metrics:
+  - row_count
+  - missing_count
+  - missing_percentage
+  - values_count
+  - values_percentage
+  - invalid_count
+  - invalid_percentage
+  - valid_count
+  - valid_percentage
+  - avg_length
+  - max_length
+  - min_length
+  - avg
+  - sum
+  - max
+  - min
+  - stddev
+  - variance
+  - histogram
+  - frequent_values
+  - uniqueness
+tests:
+  - name: invalid_row_count
+    title: Invalid row count
+    expression: row_count > 0
+columns:
+  order_id:
+    valid_format: uuid
+    tests:
+      - name: invalid_format_percentage_order
+        title: Invalid order IDs
+        expression: invalid_percentage == 0
+  product_id:
+    valid_format: uuid
+    tests:
+      - name: invalid_format_percentage_product
+        title: Invalid product IDs
+        expression: invalid_percentage <= 3
+
+  customer_id:
+    valid_format: uuid
+    tests:
+      - name: invalid_format_percentage_customer
+        title: Invalid customer IDs
+        expression: missing_count == 0
+  discount:
+    valid_format: number_percentage
+    tests:
+      - name: invalid_format_percentage_discount
+        title: Invalid discount
+        expression: invalid_percentage == 0
+  shipping_address:
+    tests:
+      - name: missing_shipping_address
+        title: Missing shipping address
+        expression: missing_count < 3
+  payment_method:
+    valid_values:
+      - Cash
+      - Credit Card
+      - Debit Card
+      - Wire Transfer
+    tests:
+      - name: invalid_format_percentage_payment
+        title: Invalid payment method
+        expression: invalid_percentage < 25
+
+sql_metrics:
+  - type: failed_rows
+    name: INVALID_DATES
+    sql: |
+            select order_id as failed_orders
+            from s3_orders
+            where ship_date < order_date;
